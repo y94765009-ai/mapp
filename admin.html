@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>لوحة الباحثة – جواز الصحة الوقائية</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#0B2442;--navy2:#16355F;--gold:#C6912E;--gold-l:#F7EDD6;--bg:#F3F5F9;--card:#fff;--soft:#EEF2F8;--line:#DDE3EC;--txt:#172538;--mut:#66758A;--ok:#2E8B63;--mid:#D39A1F;--low:#D2573B;--shadow:0 1px 2px rgba(11,36,66,.05),0 8px 24px rgba(11,36,66,.07)}
+@media (prefers-color-scheme:dark){:root{--bg:#0A1423;--card:#111F35;--soft:#17283F;--line:#243752;--txt:#E8EEF7;--mut:#94A3B8;--gold-l:#2A2415}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font-family:'Tajawal',system-ui,sans-serif;line-height:1.6}
+header{background:linear-gradient(150deg,var(--navy),var(--navy2));color:#fff;padding:18px 16px;border-bottom:4px solid var(--gold)}
+header .in{max-width:1000px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{margin:0;font-size:21px}header small{opacity:.8}
+.wrap{max-width:1000px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:var(--shadow);margin-bottom:14px}
+.card h3{margin:0 0 12px;font-size:17px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:14px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;box-shadow:var(--shadow)}
+.kpi b{font-size:30px;display:block;line-height:1.1}.kpi span{color:var(--mut);font-size:13.5px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:760px){.two{grid-template-columns:1fr}}
+input{padding:10px 12px;border:1.5px solid var(--line);border-radius:12px;font:inherit;background:var(--card);color:var(--txt);direction:ltr;min-width:220px}
+button{font:inherit;border:0;border-radius:12px;padding:10px 18px;background:var(--gold);color:#fff;font-weight:700;cursor:pointer}
+button.ghost{background:rgba(255,255,255,.14)}
+table{width:100%;border-collapse:separate;border-spacing:4px;font-size:14px}th{font-weight:500;color:var(--mut);font-size:13px}
+td.c{text-align:center;border-radius:10px;padding:8px 4px;font-weight:700}
+.na{color:var(--mut);font-weight:400}
+.hb{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:13.5px}.hb .l{width:120px;flex:none}.hb .t{flex:1;height:14px;background:var(--soft);border-radius:7px;overflow:hidden}.hb .t i{display:block;height:100%;border-radius:7px}.hb .v{width:46px;text-align:start;font-weight:700}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--mut);margin-bottom:8px}.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:5px}
+.delta{font-size:44px;font-weight:800;line-height:1}
+.stack{display:flex;height:26px;border-radius:13px;overflow:hidden}.stack i{display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700}
+.note{background:var(--gold-l);border-radius:14px;padding:10px 14px;font-size:13.5px}
+.hidden{display:none!important}
+@media print{header button,#bar{display:none}}
+</style>
+</head>
+<body>
+<header><div class="in"><div><h1>📊 لوحة الباحثة</h1><small>جواز الصحة الوقائية · بيانات مجمّعة ومجهولة الهوية</small></div>
+<div id="bar" style="display:flex;gap:8px;flex-wrap:wrap"><input id="key" type="password" placeholder="مفتاح الباحثة"><button id="go">عرض</button><button class="ghost" id="demo">بيانات تجريبية</button></div></div></header>
+<div class="wrap" id="out"><div class="card">أدخلي المفتاح (من الشيت Summary الخلية K2) ثم اضغطي "عرض"، أو جرّبي "بيانات تجريبية" لمعاينة الشكل.</div></div>
+
+<script>
+const CONFIG={API_URL:''}; // نفس رابط Apps Script المستخدم في index.html
+const COMP={diet:['الغذاء','🥗'],act:['النشاط','🏃'],nic:['النيكوتين','🚭'],sleep:['النوم','🌙'],bmi:['الوزن','⚖️'],lipid:['الدهون','🧪'],gluc:['السكر','🍬'],bp:['الضغط','❤️']};
+const FLAG={smoke:'تدخين / فيب',sleep:'نوم أقل من 6 ساعات',inactive:'نشاط أقل من 150 دقيقة',water:'مياه أقل من 6 أكواب',caff:'كافيين فوق 400 مجم',refer:'قياسات تحتاج متابعة'};
+const YEARS=['الأولى','الثانية','الثالثة','الرابعة'];
+const $=id=>document.getElementById(id);
+const col=x=>x>=80?'var(--ok)':x>=50?'var(--mid)':'var(--low)';
+const bg=x=>x>=80?'rgba(46,139,99,.18)':x>=50?'rgba(211,154,31,.2)':'rgba(210,87,59,.18)';
+const NA='<span class="na">n&lt;5</span>';
+
+const DEMO={ok:true,min_n:5,total:268,baseline_n:212,followup_n:56,refer_n:23,
+ byYear:[{year:1,n:61,le8:71.4,comp:{diet:52,act:68,nic:88,sleep:74,bmi:81,lipid:90,gluc:85,bp:79},flags:{smoke:14,sleep:38,inactive:49,water:57,caff:33,refer:8}},
+         {year:2,n:58,le8:68.9,comp:{diet:49,act:63,nic:84,sleep:70,bmi:78,lipid:88,gluc:84,bp:76},flags:{smoke:18,sleep:42,inactive:54,water:60,caff:39,refer:11}},
+         {year:3,n:49,le8:66.2,comp:{diet:46,act:60,nic:80,sleep:68,bmi:74,lipid:85,gluc:82,bp:73},flags:{smoke:22,sleep:47,inactive:58,water:63,caff:44,refer:13}},
+         {year:4,n:44,le8:63.5,comp:{diet:43,act:57,nic:77,sleep:64,bmi:71,lipid:83,gluc:80,bp:70},flags:{smoke:25,sleep:52,inactive:61,water:64,caff:48,refer:16}}],
+ paired:{n:48,before:66.1,after:71.3,delta:5.2,comp:{diet:{before:46,after:55},act:{before:58,after:68},nic:{before:82,after:84},sleep:{before:66,after:72},bmi:{before:76,after:77},lipid:null,gluc:{before:83,after:83},bp:{before:74,after:75}}},
+ dist:{low:21,mid:121,high:70}};
+
+async function load(demo){
+  if(demo||!CONFIG.API_URL){render(DEMO,true);return;}
+  const k=$('key').value.trim(); if(!k){alert('أدخلي المفتاح');return;}
+  $('out').innerHTML='<div class="card">جارٍ التحميل…</div>';
+  try{
+    const r=await fetch(CONFIG.API_URL+'?action=admin&key='+encodeURIComponent(k)),j=await r.json();
+    if(!j.ok){$('out').innerHTML='<div class="card">تعذر الدخول: '+(j.error==='unauthorized'?'المفتاح غير صحيح':j.error)+'</div>';return;}
+    try{sessionStorage.setItem('hpk',k)}catch(e){}
+    render(j,false);
+  }catch(e){$('out').innerHTML='<div class="card">تعذر الاتصال بالخادم.</div>';}
+}
+const v=x=>x===null||x===undefined?NA:x;
+
+function render(d,isDemo){
+  const maxLe=100;
+  const total=d.dist.low===null?null:d.dist.low+d.dist.mid+d.dist.high;
+  $('out').innerHTML=`
+  ${isDemo?'<div class="note" style="margin-bottom:14px">بيانات تجريبية للمعاينة فقط.</div>':''}
+  <div class="kpis">
+    <div class="kpi"><b>${d.total}</b><span>إجمالي الاستجابات</span></div>
+    <div class="kpi"><b>${d.baseline_n}</b><span>الجولة الأولى</span></div>
+    <div class="kpi"><b>${d.followup_n}</b><span>المتابعة بعد التوعية</span></div>
+    <div class="kpi"><b>${d.paired.n}</b><span>مشاركون أكملوا الجولتين</span></div>
+    <div class="kpi"><b>${v(d.refer_n)}</b><span>قياسات تحتاج متابعة</span></div>
+  </div>
+
+  <div class="two">
+    <div class="card"><h3>متوسط درجة LE8 حسب الفرقة</h3>
+      ${d.byYear.map(y=>`<div class="hb"><span class="l">الفرقة ${YEARS[y.year-1]} <small class="na">(${y.n})</small></span><span class="t"><i style="width:${y.le8===null?0:y.le8/maxLe*100}%;background:${y.le8===null?'transparent':col(y.le8)}"></i></span><span class="v">${v(y.le8)}</span></div>`).join('')}
+      <p class="na" style="font-size:12.5px;margin:8px 0 0">الأعلى أفضل (0–100). تُخفى أي مجموعة أقل من ${d.min_n} مشاركين.</p></div>
+    <div class="card"><h3>توزيع مستويات صحة القلب والأوعية</h3>
+      ${total?`<div class="stack"><i style="width:${d.dist.low/total*100}%;background:var(--low)">${d.dist.low}</i><i style="width:${d.dist.mid/total*100}%;background:var(--mid)">${d.dist.mid}</i><i style="width:${d.dist.high/total*100}%;background:var(--ok)">${d.dist.high}</i></div>
+      <div class="legend" style="margin-top:10px"><span><i style="background:var(--low)"></i>منخفضة (&lt;50)</span><span><i style="background:var(--mid)"></i>متوسطة (50–79)</span><span><i style="background:var(--ok)"></i>مرتفعة (80+)</span></div>`:NA}
+    </div>
+  </div>
+
+  <div class="card"><h3>درجات المؤشرات الثمانية حسب الفرقة</h3>
+    <div style="overflow-x:auto"><table><tr><th></th>${d.byYear.map(y=>`<th>الفرقة ${YEARS[y.year-1]}</th>`).join('')}</tr>
+    ${Object.keys(COMP).map(k=>`<tr><th style="text-align:start">${COMP[k][1]} ${COMP[k][0]}</th>${d.byYear.map(y=>{const x=y.comp[k];return x===null?`<td class="c">${NA}</td>`:`<td class="c" style="background:${bg(x)};color:${col(x)}">${x}</td>`;}).join('')}</tr>`).join('')}
+    </table></div></div>
+
+  <div class="card"><h3>انتشار السلوكيات والعوامل (% من المشاركين)</h3>
+    <div class="legend">${d.byYear.map((y,i)=>`<span><i style="background:${['#C6912E','#2E6FB0','#2E8B63','#8A4FB0'][i]}"></i>الفرقة ${YEARS[y.year-1]}</span>`).join('')}</div>
+    ${Object.keys(FLAG).map(f=>`<div style="margin-bottom:10px"><b style="font-size:14px">${FLAG[f]}</b>${d.byYear.map((y,i)=>`<div class="hb"><span class="l" style="width:70px">${YEARS[y.year-1]}</span><span class="t"><i style="width:${y.flags[f]===null?0:y.flags[f]}%;background:${['#C6912E','#2E6FB0','#2E8B63','#8A4FB0'][i]}"></i></span><span class="v">${y.flags[f]===null?NA:y.flags[f]+'%'}</span></div>`).join('')}</div>`).join('')}</div>
+
+  <div class="card"><h3>الأثر بعد حملة التوعية (نفس المشاركين قبل وبعد)</h3>
+    ${d.paired.delta===null?`<p class="na">تظهر النتائج عند وجود ${d.min_n} أزواج على الأقل (الحالي: ${d.paired.n}).</p>`:`
+    <div class="two"><div><div class="delta" style="color:${d.paired.delta>=0?'var(--ok)':'var(--low)'}"><bdi dir="ltr">${d.paired.delta>0?'+':''}${d.paired.delta}</bdi></div><div class="na">تغير متوسط LE8: قبل ${d.paired.before} · بعد ${d.paired.after} (على ${d.paired.n} مشاركًا)</div></div>
+    <div>${Object.keys(COMP).map(k=>{const c=d.paired.comp[k];return c?`<div class="hb"><span class="l" style="width:90px">${COMP[k][1]} ${COMP[k][0]}</span><span class="t"><i style="width:${c.after}%;background:var(--gold)"></i></span><span class="v" style="width:96px;font-size:12.5px">قبل ${c.before} · بعد ${c.after}</span></div>`:'';}).join('')}</div></div>
+    <p class="na" style="font-size:12.5px;margin:10px 0 0">للنشر: استخدمي اختبار t المقترن أو Wilcoxon على بيانات الشيت (الصفوف المتطابقة بالكود)، وراقبي أثر الانسحاب.</p>`}
+  </div>
+  <p class="na" style="text-align:center;font-size:12.5px">اللوحة تعرض ملخصات فقط. البيانات الخام بالكود المجهول في الشيت Responses.</p>`;
+}
+$('go').onclick=()=>load(false); $('demo').onclick=()=>load(true);
+try{const k=sessionStorage.getItem('hpk'); if(k&&CONFIG.API_URL){$('key').value=k;}}catch(e){}
+</script>
+</body>
+</html>
