@@ -69,6 +69,12 @@ button{font:inherit;cursor:pointer}
 .mc .tip{display:none;font-size:13px;margin-top:8px;color:var(--txt)}
 .mc.open .tip{display:block}
 .badge{font-size:11px;background:var(--low);color:#fff;border-radius:8px;padding:0 7px}
+/* ---------- CKM ---------- */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:8px;margin-top:12px}
+.tile{background:var(--soft);border-radius:16px;padding:10px 8px;text-align:center;border:1.5px solid transparent;font-size:12.5px}
+.tile b{display:block;font-size:13.5px}.tile span{display:block;color:var(--mut);line-height:1.35;margin-top:2px}
+.tile.na{border:1.5px dashed var(--line);background:transparent;opacity:.7}
+.stg{display:flex;align-items:center;gap:12px}.stg .n{width:54px;height:54px;border-radius:16px;color:#fff;font-weight:800;font-size:24px;display:flex;align-items:center;justify-content:center;flex:none}
 /* ---------- focus card ---------- */
 .focus{display:flex;gap:12px;align-items:center}
 .focus .ic{font-size:34px}
@@ -121,6 +127,7 @@ nav button.on{color:var(--navy);background:var(--gold-l);font-weight:700}
 :root[data-theme="dark"] nav button.on{color:var(--gold)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) nav button.on{color:var(--gold)}}
 .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 0;max-width:720px;margin:0 auto}
+.langb{border:1px solid var(--line,#cbd5e1);background:transparent;color:inherit;border-radius:999px;padding:5px 12px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
 .topbar b{font-size:17px}.topbar small{color:var(--mut);display:block;font-size:12.5px}
 .toast{position:fixed;bottom:96px;inset-inline:16px;max-width:420px;margin:0 auto;background:var(--navy);color:#fff;border-radius:14px;padding:10px 14px;font-size:14px;text-align:center;z-index:20;box-shadow:var(--shadow)}
 .foot{font-size:12.5px;color:var(--mut);text-align:center;margin:6px 0 20px}
@@ -130,38 +137,65 @@ nav button.on{color:var(--navy);background:var(--gold-l);font-weight:700}
 <body>
 <div id="top"></div>
 <div class="wrap" id="app"></div>
-<nav id="nav" class="hidden"><div class="in">
-  <button data-t="dash"><span>📊</span>لوحتي</button>
-  <button data-t="goal"><span>🎯</span>هدفي</button>
-  <button data-t="me"><span>👤</span>بروفايلي</button>
-</div></nav>
+<nav id="nav" class="hidden"><div class="in"></div></nav>
 <div id="toast" class="toast hidden"></div>
 
 <script>
+/*I18N_START*/
+const LANG=(()=>{try{return localStorage.getItem('hp_lang')==='en'?'en':'ar'}catch(e){return 'ar'}})();
+const I18N_EN={"التدخين من أقوى عوامل خطر القلب والأوعية. الفيب أدلته أحدث وتشير إلى زيادة طفيفة في خطر ارتفاع الضغط، ولا يُعد بديلًا آمنًا. الإقلاع الكامل أفضل، ويمكن طلب دعم من عيادة الكلية": "Smoking is one of the strongest cardiovascular risk factors. Vaping evidence is newer and points to a slight rise in blood-pressure risk; it is not a safe alternative. Quitting completely is best, and you can ask the college clinic for support", "لا تُحدَّدان بدون تقييم سريري، وبالتالي المراحل هنا حد أدنى. وجود مؤشر كلوي من قياس واحد لا يعني مرضًا؛ التشخيص يتطلب استمرار الشذوذ أكثر من": "cannot be determined without a clinical assessment, so the stages here are a minimum. A kidney marker from a single measurement does not mean disease; diagnosis requires an abnormality persisting for more than", "الذي ستنفّذ فيه. ربط السلوك بموقف محدد (إذا… فإن…) يجعله أسهل في التنفيذ من النية العامة، والخطة البسيطة أفضل من المعقدة": "in which you will do it. Linking a behavior to a specific situation (if… then…) makes it easier to carry out than a general intention, and a simple plan beats a complicated one", "الاسم المستعار والأيقونة والأهداف محفوظة على هذا الجهاز فقط. ما يُرسل للبحث هو إجاباتك وقياساتك مع الكود المجهول": "Your nickname, avatar and goals are stored on this device only. What is sent for research is your answers and measurements with the anonymous code", "المشاركة اختيارية وبدون اسم حقيقي، ويمكنك التوقف في أي وقت. تُستخدم البيانات المجمّعة فقط للبحث العلمي والتوعية": "Participation is voluntary and without a real name, and you can stop at any time. Only aggregated data are used for scientific research and awareness", "قلّل الوجبات السريعة والمقليات والمخللات تدريجيًا، وزد الخضار والفاكهة. الملح الزائد يرفع الضغط ويُجهد الكلى": "Gradually cut down on fast food, fried foods and pickles, and eat more vegetables and fruit. Excess salt raises blood pressure and strains the kidneys", "اختيارية، وغالبًا يسجلها فريق الفحص. اترك الحقل فارغًا إن لم يكن متاحًا. كلما زادت القياسات أصبحت درجتك أدق": "Optional, and usually recorded by the screening team. Leave the field empty if not available. The more measurements you add, the more accurate your score", "درجة صحة القلب والأوعية، ونقاط قوتك وما يحتاج تحسينًا، وهدف أسبوعي تتابعه، ومتابعة تقدمك بعد حملة التوعية": "your cardiovascular health score, your strengths and what needs improvement, a weekly goal to follow, and tracking of your progress after the awareness campaign", "غذاء، نشاط، تدخين، نوم) والمؤشرات. القيمة السالبة مع مؤشر ضار تعني أن العادات الأفضل مرتبطة بقيم أقل": "diet, activity, smoking, sleep) and the indicators. A negative value with a harmful indicator means better habits are linked to lower values", "يقارن هذا البحث بين أسلوبين لدعم الأهداف الأسبوعية، لذلك قد تختلف أدوات الهدف قليلًا بين الزملاء": "This study compares two ways of supporting weekly goals, so goal tools may differ slightly between colleagues", "استُبعدت مكونات القياسات (وزن، ضغط، سكر، دهون) من درجة العادات لتفادي الدوران المنطقي مع مراحل": "The measurement components (weight, pressure, glucose, lipids) were excluded from the habits score to avoid circularity with stages", "هذا لا يعني وجود مرض بالضرورة؛ فالقراءة الواحدة لا تكفي للتشخيص. يمكنك زيارة عيادة الكلية": "This does not necessarily mean disease; a single reading is not enough for diagnosis. You can visit the college clinic", "أرقام تقريبية مبنية على متوسطات شائعة وتختلف حسب المنتج والكمية، ولا تدخل في درجتك": "Approximate numbers based on common averages; they vary by product and amount, and are not part of your score", "لمحة سريعة بتقريب طبيعي وبدون ضبط للدرجة الأولى. للنشر: تحليل حسب التوزيع الأصلي": "A quick look using a normal approximation and without adjusting for baseline score. For publication: analyze according to the original allocation", "هذا ارتباط وليس سببية، وللنشر يلزم نموذج انحدار يضبط العمر والنوع والفرقة. يلزم": "This is an association, not causation, and for publication a regression model adjusting for age, sex and year is needed. Needs", "صغيرًا يمكنك تحقيقه. التغيير الصغير المتكرر يتفوق على الخطط الكبيرة": "small that you can achieve. Small repeated change beats big plans", "أضف قياساتك (الضغط، السكر، الدهون، الكلى) لتظهر لك صورتك المتكاملة": "Add your measurements (pressure, glucose, lipids, kidney) to see your complete picture", "الأداة للتوعية والبحث العلمي ولا تُغني عن الفحص الطبي أو التشخيص": "This tool is for awareness and scientific research and does not replace a medical exam or diagnosis", "أوافق على المشاركة في هذا البحث، وأفهم أن بياناتي مجهولة الهوية": "I agree to participate in this research, and I understand that my data are anonymous", "على بيانات الشيت (الصفوف المتطابقة بالكود)، وراقبي أثر الانسحاب": "on the sheet data (rows matched by code), and monitor the effect of dropout", "مجالات. تصنيف بحثي تعليمي مبني على بيان الجمعية الأمريكية للقلب": "domains. An educational research classification based on the American Heart Association statement", "اللوحة تعرض ملخصات فقط. البيانات الخام بالكود المجهول في الشيت": "The dashboard shows summaries only. Raw data with the anonymous code are in the sheet", "حساب تعليمي لتغيّر درجتك فقط، وليس توقعًا لخطر الإصابة بأي مرض": "An educational calculation of the change in your score only, not a prediction of the risk of any disease", "مؤشرات مبكرة (دهون زائدة أو ما قبل السكر): وقت ممتاز للوقاية": "Early indicators (excess body fat or prediabetes): an excellent time for prevention", "الاسم المستعار والأيقونة تبقى على جهازك فقط ولا تُرسل لأحد": "The nickname and avatar stay on your device only and are not sent to anyone", "دقيقة أسبوعيًا من نشاط متوسط الشدة، كالمشي السريع. ابدأ بـ": "minutes a week of moderate-intensity activity, such as brisk walking. Start with", "مؤشرات أيضية أو كلوية تستحق التقييم الطبي وتأكيد القياس": "Metabolic or kidney indicators that deserve medical evaluation and confirmation of the measurement", "أدخل الضغط الانقباضي والانبساطي معًا أو اتركهما فارغين": "Enter systolic and diastolic pressure together or leave both empty", "احتفظ بهذا الكود: يربط متابعتك على أي جهاز بدون اسمك": "Keep this code: it links your follow-up on any device without your name", "جواز الصحة الوقائية · بيانات مجمّعة ومجهولة الهوية": "Preventive Health Passport · aggregated, anonymous data", "قلّل الدهون المشبعة والمقليات وزد الألياف والأسماك": "Cut saturated fats and fried foods and add fiber and fish", "قلّل الملح وتحرك يوميًا. أعد القياس مرتين بعد راحة": "Cut salt and move daily. Re-measure twice after resting", "يرجى مراجعة القياسات: توجد قيمة خارج المدى المنطقي": "Please review the measurements: a value is outside the plausible range", "سيظهر منحنى تقدمك هنا بعد التحديث الثاني لبياناتك": "Your progress curve will appear here after your second data update", "تغيير الهدف سيحفظ تقدمك الحالي في السجل. متابعة؟": "Changing the goal will save your current progress in the log. Continue?", "إجمالي الدقائق في الأسبوع (مشي سريع، رياضة، جيم": "Total minutes per week (brisk walking, sports, gym", "من الجمعية الأمريكية للقلب، ودرجة الغذاء مبسّطة": "from the American Heart Association, and the diet score is simplified", "الأثر بعد حملة التوعية (نفس المشاركين قبل وبعد": "The effect after the awareness campaign (same participants before and after", "اضغط أي مؤشر لقراءة النصيحة. الدرجات حسب نظام": "Tap any indicator to read the advice. Scores follow the", "بضبط درجة البداية، مع تسجيل البروتوكول مسبقًا": "adjusting for baseline score, with the protocol registered in advance", "سيُحذف ملفك من هذا الجهاز (يمكنك العودة بكودك": "Your profile will be deleted from this device (you can come back with your code", "قلّل المشروبات المحلاة والحلويات وتحرك يوميًا": "Cut sweetened drinks and sweets and move daily", "لا توجد مؤشرات خطر ظاهرة في القياسات المتاحة": "No risk indicators appear in the available measurements", "أختار وجبة مشوية أو سلطة بدل الوجبة السريعة": "I choose a grilled meal or a salad instead of fast food", "أشرب مياه أو شايًا خفيفًا بدل مشروب الطاقة": "I drink water or light tea instead of an energy drink", "تحتاجان تقييمًا سريريًا لا يمكن إجراؤه هنا": "need a clinical assessment that cannot be done here", "صوديوم الوجبات السريعة والمقليات والمخللات": "Sodium in fast food, fried foods and pickles", "انتشار السلوكيات والعوامل (% من المشاركين": "Prevalence of behaviors and factors (% of participants", "التجربة العشوائية المدمجة: هل تُحسّن خطة": "Embedded randomized trial: does an", "وضع تجريبي: لم تُحفظ المشاركة على الخادم": "Demo mode: your participation was not saved to the server", "وضع تجريبي: لن تُحفظ البيانات على الخادم": "Demo mode: data will not be saved to the server", "ماذا لو أقلعت تمامًا عن التدخين والفيب؟": "What if you quit smoking and vaping completely?", "التدرج في خفض الوزن أهم من السرعة؛ نقص": "Gradual weight loss matters more than speed; losing", "مؤشرات فقط، وتزداد دقة بإضافة القياسات": "indicators only, and accuracy increases as you add measurements", "هل ترتبط العادات بمؤشرات الكلى والأيض؟": "Are habits associated with kidney and metabolic indicators?", "وقياسات مفردة، وليس تشخيصًا. المرحلتان": "and single measurements, not a diagnosis. Stages", "سكر الدم في نطاق يستحق التأكيد بتحليل": "Blood glucose in a range that deserves confirmation by a test", "القياسات تتوافق مع المتلازمة الأيضية": "The measurements are consistent with metabolic syndrome", "من الوزن يُحدث فرقًا في الضغط والسكر": "of weight makes a difference in pressure and glucose", "ساعات بمواعيد ثابتة، حتى في الإجازة": "hours at regular times, even on holidays", "يرجى الموافقة على المشاركة للمتابعة": "Please agree to participate to continue", "درجات المؤشرات الثمانية حسب الفرقة": "The eight indicator scores by year", "لوحة الباحثة – جواز الصحة الوقائية": "Researcher Dashboard – Preventive Health Passport", "معدل الترشيح الكلوي المقدّر أقل من": "Estimated glomerular filtration rate below", "يُنصح بعرض بعض القياسات على الطبيب": "It is advised to show some measurements to the doctor", "تعذر الاتصال بالخادم، حاول لاحقًا": "Could not reach the server, try later", "محسوبة من المؤشرات الثمانية كاملة": "calculated from all eight indicators", "توزيع مستويات صحة القلب والأوعية": "Distribution of cardiovascular health levels", "أسابيع. حدّث بياناتك لترى تقدمك": "weeks. Update your data to see your progress", "النشاط البدني المتوسط أو الشديد": "Moderate or vigorous physical activity", "متوسط درجة العادات حسب المرحلة": "Average habits score by stage", "يوم بلا وجبات سريعة ولا مقليات": "days without fast food or fried foods", "أمر بجوار محل الوجبات السريعة": "I walk past the fast-food shop", "أيام الخضار والفاكهة أسبوعيًا": "days of vegetables and fruit per week", "أيام الوجبات السريعة أسبوعيًا": "days of fast food per week", "سكر الدم في نطاق ما قبل السكر": "Blood glucose in the prediabetes range", "كم كوبًا في اليوم؟ (الكوب نحو": "How many cups a day? (a cup is about", "معايير). يُنصح بالتقييم الطبي": "criteria). Medical evaluation is advised", "أزواج على الأقل في كل مجموعة": "pairs at least in each group", "مشاركًا على الأقل لكل ارتباط": "participants at least for each correlation", "هل تعيش مع مدخّن داخل البيت؟": "Do you live with a smoker inside the house?", "أحسنت! حققت هدف هذا الأسبوع": "Well done! You achieved this week's goal", "أطلب أكلًا من تطبيق التوصيل": "I order food from a delivery app", "بيانات تجريبية للمعاينة فقط": "Demo data for preview only", "جرّب: ماذا لو غيّرت عاداتك؟": "Try: what if you changed your habits?", "دهون زائدة أو توزيع غير صحي": "excess fat or unhealthy distribution", "مشاركًا بدون أسماء) · درجتك": "participants, anonymous) · your score", "معدل الترشيح الكلوي المقدّر": "Estimated glomerular filtration rate", "أشعر بالجوع وأنا في الكلية": "I feel hungry while at college", "جم (يُؤكَّد بتكرار التحليل": "g (confirmed by repeating the test", "دقائق بدل التدخين أو الفيب": "minutes instead of smoking or vaping", "رقم موافقة لجنة الأخلاقيات": "Ethics committee approval number", "في نطاق السكري (يلزم تأكيد": "in the diabetes range (needs confirmation", "معدل الترشيح الكلوي أقل من": "Glomerular filtration rate below", "أعد القياس مرتين بعد راحة": "Re-measure twice after resting", "إندومي أو شيبسي أو مخللات": "Indomie, chips or pickles", "تُحسب المرحلة لمن قيست له": "The stage is calculated for those who were measured", "حذف بياناتي من هذا الجهاز": "Delete my data from this device", "كافيين وملح (تقدير تقريبي": "caffeine and salt (rough estimate", "كم كوبًا في اليوم العادي؟": "How many cups on a usual day?", "محاضرات + موبايل + مذاكرة": "lectures + phone + studying", "مراحل القلب والكلى والأيض": "Cardio-kidney-metabolic stages", "أدخل الكوليسترول الكلي و": "Enter total cholesterol and", "أطفئ الشاشات وأذهب للنوم": "I switch off screens and go to sleep", "تم حفظ مشاركتك، شكرًا لك": "Your participation was saved, thank you", "دقيقة (مشي سريع أو رياضة": "minutes (brisk walking or sports", "كم عبوة في اليوم العادي؟": "How many cans/packs on a usual day?", "كم علبة في اليوم العادي؟": "How many cans on a usual day?", "هدف فقط (مجموعة المقارنة": "Goal only (comparison group", "يجب أن يكون أقل من الكلي": "must be lower than total", "أدخلي المفتاح (من الشيت": "Enter the key (from the sheet", "أزواج على الأقل (الحالي": "pairs at least (current", "أشعر بالنعاس وأنا أذاكر": "I feel sleepy while studying", "أضع الموبايل على الشاحن": "I put the phone on the charger", "أضف القياس لتكتمل صورتك": "Add the measurement to complete your picture", "الضغط الانبساطي (الواطي": "Diastolic pressure (the lower number", "الضغط الانقباضي (العالي": "Systolic pressure (the upper number", "درجة صحة القلب والأوعية": "Cardiovascular health score", "دقائق النشاط في الأسبوع": "Minutes of activity per week", "على بيانات الشيت، مثلًا": "on the sheet data, for example", "مؤشر كلوي يستحق التأكيد": "A kidney indicator worth confirming", "متوسط ساعات النوم ليلًا": "Average hours of sleep per night", "مشاركون أكملوا الجولتين": "participants completed both rounds", "اجعله هدفي هذا الأسبوع": "Make it my goal this week", "الفرقة الرابعة (التخرج": "Fourth year (graduation", "الكوليسترول الكلي (مجم": "Total cholesterol (mg", "تُخفى أي مجموعة أقل من": "Hidden: any group with fewer than", "مخطط المؤشرات الثمانية": "Chart of the eight indicators", "معًا أو اتركهما فارغين": "together or leave both empty", "مقارنة مجهولة مع فرقتك": "Anonymous comparison with your year", "أشعر برغبة في التدخين": "I feel like smoking", "اختر هويتك على اللوحة": "Choose your identity on the dashboard", "اسم مستعار (مثال: نجم": "Nickname (e.g.: Star", "تظهر النتائج عند وجود": "Results appear when there are", "تعديل الاسم والأيقونة": "Edit name and avatar", "حلويات أو عصائر معلبة": "Sweets or canned juices", "ساعات الجلوس في اليوم": "Sitting hours per day", "شاركت من قبل ولدي كود": "I participated before and have a code", "غير منتظمة (سهر متكرر": "Irregular (frequent late nights", "للنشر: استخدمي اختبار": "For publication: use a test", "لم تُسجَّل قياسات بعد": "No measurements recorded yet", "موعد المتابعة المقترح": "Suggested follow-up date", "أيام الهدف المنفَّذة": "Goal days completed", "المتابعة بعد التوعية": "Follow-up after awareness", "تعذر الاتصال بالخادم": "Could not reach the server", "دقائق لتأكيد القراءة": "minutes to confirm the reading", "كم يومًا في الأسبوع؟": "How many days a week?", "لوحتك الصحية الشخصية": "your personal health dashboard", "يشمل الصفر (غير حاسم": "includes zero (inconclusive", "يوم بلا تدخين أو فيب": "days without smoking or vaping", "يوم بلا مشروبات طاقة": "days without energy drinks", "القلب والكلى والأيض": "Cardio-kidney-metabolic", "ترشيح أقل قليلًا من": "filtration slightly less than", "جواز الصحة الوقائية": "Preventive Health Passport", "قياسات تحتاج متابعة": "Measurements needing follow-up", "كرياتينين الدم (مجم": "Blood creatinine (mg", "مجالات على الأقل من": "domains at least of", "معدل الترشيح الكلوي": "Glomerular filtration rate", "يظهر الفرق عند وجود": "The difference appears when there are", "يقترب موعد الامتحان": "The exam is approaching", "يلزم تقييم طبي عاجل": "Urgent medical evaluation needed", "التدخين والنيكوتين": "Smoking and nicotine", "تبديل الوضع الفاتح": "Toggle light mode", "تتحسن درجتك بمقدار": "Your score improves by", "دقائق) ثم تحصل على": "minutes) then you get", "ركّز على هذا أولًا": "Focus on this first", "إجمالي الاستجابات": "Total responses", "ابدأ هدفًا جديدًا": "Start a new goal", "حان موعد المتابعة": "Time for follow-up", "حوّل هدفك إلى خطة": "Turn your goal into a plan", "هدف + خطة إذا–فإن": "Goal + if–then plan", "وجبات سريعة (برجر": "Fast food (burger", "المفتاح غير صحيح": "Incorrect key", "عن المرة السابقة": "since last time", "مؤشراتك الثمانية": "Your eight indicators", "هدفي هذا الأسبوع": "My goal this week", "أخلص آخر محاضرة": "I finish my last lecture", "أشرب مياه وأمشي": "I drink water and walk", "أعلى من المثالي": "Above the ideal", "أكملوا الجولتين": "completed both rounds", "أنتهي من العشاء": "I finish dinner", "اكتمال البيانات": "Data completeness", "الدهون الثلاثية": "Triglycerides", "الضغط الانقباضي": "Systolic pressure", "الفرقة الدراسية": "Academic year", "الكافيين اليومي": "Daily caffeine", "دقيقة ثلاث مرات": "minutes three times", "لترى أثر تغييرك": "to see the effect of your change", "مؤشر كتلة الجسم": "Body mass index", "أدخل أي محاضرة": "I enter any lecture", "أنتهي من الأكل": "I finish eating", "أهدافي السابقة": "My previous goals", "إضافة القياسات": "Add measurements", "اختيار هدف آخر": "Choose another goal", "ارتباط سبيرمان": "Spearman correlation", "الدهون الجسمية": "Body fat", "السكر التراكمي": "HbA1c", "الفرقة الثالثة": "Third year", "الفرقة الثانية": "Second year", "الكود غير صحيح": "Incorrect code", "بيانات تجريبية": "demo data", "تحديث القياسات": "Update measurements", "محيط الخصر (سم": "Waist circumference (cm", "منذ متى توقفت؟": "How long ago did you stop?", "يحتاج اهتمامًا": "Needs attention", "أخلص المذاكرة": "I finish studying", "أدخلي المفتاح": "Enter the key", "أشرب كوب مياه": "I drink a glass of water", "أصحو من النوم": "I wake up", "أقل قليلًا من": "slightly less than", "أقل من المعدل": "Below average", "ألبومين البول": "Urine albumin", "الجولة الأولى": "First round", "الفرقة الأولى": "First year", "النشاط البدني": "Physical activity", "تحديث بياناتي": "Update my data", "تنزيل بياناتي": "Download my data", "خضار أو فاكهة": "Vegetables or fruit", "درجتك الحالية": "Your current score", "ساعات أو أكثر": "hours or more", "سكر صائم (مجم": "Fasting glucose (mg", "سنوات أو أكثر": "years or more", "لا يشمل الصفر": "excludes zero", "لم أدخن أبدًا": "I never smoked", "لمعاينة الشكل": "to preview the look", "مفتاح الباحثة": "Researcher key", "مقليات (طعمية": "Fried foods (falafel", "يحتاج تحسينًا": "Needs improvement", "يُعاد التحليل": "is re-analyzed", "أبدأ أي وجبة": "I start any meal", "أكون متوترًا": "I am stressed", "استبيان قصير": "a short questionnaire", "تم نسخ الكود": "Code copied", "جارٍ التحميل": "Loading", "قياسات كاملة": "Complete measurements", "لوحة الباحثة": "Researcher dashboard", "ما قبل السكر": "Prediabetes", "مرتفع قليلًا": "Slightly high", "مشروبات طاقة": "Energy drinks", "معدل الترشيح": "Filtration rate", "مواعيد النوم": "Sleep schedule", "هدفًا واحدًا": "one goal", "ألبومين بول": "Urine albumin", "احسب نتيجتي": "Calculate my result", "الأعلى أفضل": "Higher is better", "الكوليسترول": "Cholesterol", "بعد التغيير": "After the change", "بلا نيكوتين": "Nicotine-free", "تصنيف الكلى": "Kidney category", "تعذر الدخول": "Could not sign in", "تغيير الهدف": "Change goal", "تم حفظ خطتك": "Your plan was saved", "تنخفض درجتك": "your score drops", "ساعات النوم": "Sleep hours", "كولا وبيبسي": "Cola and Pepsi", "مؤشر الكتلة": "Mass index", "مياه أقل من": "Water less than", "نشاط أقل من": "Activity less than", "هدف الأسبوع": "Weekly goal", "، أو جرّبي": ", or try", "أسبوع كامل": "a full week", "أقل من سنة": "Less than a year", "أكل متوازن": "Balanced eating", "أكواب مياه": "glasses of water", "أمر بالكشك": "I pass by the kiosk", "المقترن أو": "the paired or", "الوزن (كجم": "Weight (kg", "تدق الساعة": "the clock strikes", "تعذر الحفظ": "Could not save", "تغير متوسط": "average change", "تقريبي: من": "approximately: from", "تقييم عاجل": "urgent assessment", "حسب الفرقة": "by year", "حققت هدفًا": "achieved a goal", "سجائر وفيب": "Cigarettes and vape", "ضمن المعدل": "within the limit", "فراخ مقلية": "fried chicken", "قهوة (تركي": "Coffee (Turkish", "كافيين فوق": "Caffeine above", "متوسط درجة": "Average score", "محيط الخصر": "Waist circumference", "نوم أقل من": "Sleep less than", "الطول (سم": "Height (cm", "المرحلتان": "Stages", "المشروبات": "Drinks", "النيكوتين": "Nicotine", "زيادة وزن": "overweight", "على الأقل": "at least", "مؤشر كلوي": "kidney marker", "محسوبة من": "calculated from", "مدخن سابق": "Former smoker", "نسخ الكود": "Copy code", "نمط حياتك": "your lifestyle", "وزن الجسم": "Body weight", "أهلًا بك": "Welcome", "أهلًا يا": "Hello", "إنجازاتي": "My achievements", "السلوكية": "behavioral", "القياسات": "Measurements", "المجموعة": "Group", "النتيجة؟": "plan improve the result?", "بروفايلي": "My profile", "بين درجة": "between the score", "تم الحفظ": "Saved", "ثم اضغطي": "then press", "سكر الدم": "Blood glucose", "سكر صائم": "Fasting glucose", "ضغط الدم": "Blood pressure", "غير مقاس": "not measured", "فاصل ثقة": "confidence interval", "فرق تغير": "difference in change", "للمتابعة": "to continue", "نوم ذهبي": "golden sleep", "، فإنني": ", I will", "أو أعلى": "or higher", "أو أكثر": "or more", "أيام من": "days of", "إذا–فإن": "If–then", "البداية": "Baseline", "التدخين": "Smoking", "الثالثة": "Third", "الثانية": "Second", "الرابعة": "Fourth", "المرحلة": "Stage", "المطلوب": "Required", "بياناتك": "your data", "خصوصيتي": "My privacy", "قياساتي": "My measurements", "متابعة؟": "Continue?", "مشاركين": "participants", "مشاركًا": "participants", "نسكافيه": "Nescafé", "هدف فقط": "Goal only", "أقل من": "less than", "أولوية": "Priority", "الأولى": "First", "التالي": "Next", "الخلية": "Cell", "الداكن": "Dark", "الدهون": "Lipids", "السابق": "Previous", "الغذاء": "Diet", "الفرقة": "Year", "المؤشر": "Indicator", "الموقف": "Situation", "المياه": "Water", "النشاط": "Activity", "تحسّنت": "improved", "تقدّمي": "My progress", "شاورما": "shawarma", "طبيعية": "normal", "لا شيء": "nothing", "متوسطة": "moderate", "مرتفعة": "high", "منتظمة": "regular", "منخفضة": "low", "أتحرك": "I move", "أكواب": "cups", "إلغاء": "Cancel", "الأكل": "Eating", "الخصر": "Waist", "السكر": "Glucose", "الضغط": "Pressure", "العدد": "Count", "الكلى": "Kidney", "النوع": "Sex", "النوم": "Sleep", "الهدف": "Goal", "الوزن": "Weight", "بطاطس": "fries", "بيتزا": "pizza", "تدخين": "smoking", "دقائق": "minutes", "دقيقة": "minutes", "ساعات": "hours", "سجائر": "cigarettes", "سنوات": "years", "صديقي": "friend", "طباعة": "Print", "طبيعي": "normal", "فإنني": "I will", "لوحتي": "My dashboard", "مبدئي": "preliminary", "مبسّط": "simplified", "متوسط": "average", "مرحلة": "stage", "مساءً": "in the evening", "ممتاز": "excellent", "أشرب": "I drink", "أشهر": "months", "أمشي": "I walk", "أنام": "I sleep", "أنثى": "Female", "ابدأ": "Start", "اختر": "Choose", "السن": "Age", "تغير": "change", "خطتي": "My plan", "ساعة": "hours", "سمنة": "obesity", "عاجل": "urgent", "مثال": "e.g.", "مرّت": "passed", "نشيط": "active", "نقطة": "points", "هدفك": "your goal", "هدفي": "my goal", "يلزم": "needs", "إذا": "If", "إلى": "to", "بدأ": "began", "بعد": "after", "حفظ": "Save", "خطأ": "Error", "خطة": "plan", "ذكر": "Male", "سنة": "years", "شاي": "tea", "عرض": "Show", "على": "on", "فيب": "vape", "قبل": "before", "قيس": "measured", "مجم": "mg", "نعم": "Yes", "يوم": "days", "أو": "or", "جم": "g", "دل": "dL", "لا": "No", "مل": "mL", "من": "of", "،": ",", "تدخين / فيب": "Smoking / vaping", "وجبات سريعة (برجر / شاورما / بيتزا)": "Fast food (burger / shawarma / pizza)", "مقليات (طعمية / بطاطس / فراخ مقلية)": "Fried foods (falafel / fries / fried chicken)", "قهوة (تركي / نسكافيه)": "Coffee (Turkish / Nescafé)", "الفرقة الرابعة": "Fourth year", "عربي": "عربي", "و": "and", "كلية التمريض – جامعة المنصورة الأهلية": "Faculty of Nursing – Mansoura National University"};
+const nk=s=>'\u0001'+esc(s)+'\u0002';
+const X=(()=>{
+  const LET='\u0620-\u064A\u064B-\u065F\u0671-\u06D3';
+  const keys=Object.keys(I18N_EN).sort((a,b)=>b.length-a.length);
+  const re=new RegExp(keys.map(k=>{
+    const e=k.replace(/[.*+?^${}()|[\]\\\/]/g,'\\$&');
+    return (new RegExp('^['+LET+']').test(k)?'(?<![' +LET+'])':'')+e+(new RegExp('['+LET+']$').test(k)?'(?!['+LET+'])':'');
+  }).join('|'),'g');
+  return s=>{
+    if(LANG!=='en'||typeof s!=='string')return s;
+    return s.split(/(\u0001[^\u0002]*\u0002)/).map(p=>p[0]==='\u0001'?p.slice(1,-1):p.replace(re,m=>I18N_EN[m])).join('');
+  };
+})();
+if(LANG==='en'){
+  const d=Object.getOwnPropertyDescriptor(Element.prototype,'innerHTML');
+  Object.defineProperty(Element.prototype,'innerHTML',{get(){return d.get.call(this)},set(v){d.set.call(this,X(v))},configurable:true});
+  const _a=window.alert.bind(window),_c=window.confirm.bind(window);
+  window.alert=m=>_a(X(m));window.confirm=m=>_c(X(m));
+  document.documentElement.lang='en';document.documentElement.dir='ltr';
+}
+/*I18N_END*/
 /* =================== إعدادات (عدّليها) =================== */
 const CONFIG = {
-  API_URL: 'https://script.google.com/macros/s/AKfycbwYC1axpa5UsRLjp5vLL-D4G8_XbLxh4rxzRJaWNJAuwzYjHJh02W0lEGk2RX-585jHwQ/exec',   
+  API_URL: '',   // رابط Apps Script Web App. اتركيه فارغًا للتجربة بدون حفظ على الخادم
   FACULTY: 'كلية التمريض – جامعة المنصورة الأهلية',
   ETHICS_NO: '', // رقم موافقة لجنة أخلاقيات البحث
   YEARS: ['الفرقة الأولى','الفرقة الثانية','الفرقة الثالثة','الفرقة الرابعة (التخرج)'],
   CAFF_LIMIT: 400,   // مجم/يوم
   SODIUM_LIMIT: 2300,// مجم/يوم (إرشادات 2025، والأفضل أقل من 1500)
-  FOLLOWUP_DAYS: 56  // موعد المتابعة المقترح (8 أسابيع)
+  FOLLOWUP_DAYS: 56, // موعد المتابعة المقترح (8 أسابيع)
+  /* حدود مرحلة CKM. القيم الافتراضية = حدود الجمعية الأمريكية للقلب لغير الآسيويين (من معرفتي، راجعيها في بيان Ndumele 2023).
+     النسخة الآسيوية المستخدمة في بعض الدراسات: BMI 23 وخصر 90 رجال / 80 نساء. اتفقي مع المشرف على الأنسب لمجتمع الدراسة. */
+  CKM: {BMI:25, WAIST:{M:102,F:88}},
+  RANDOMIZE: false   // true = توزيع عشوائي بين "هدف فقط" و"هدف + خطة إذا–فإن" (يحتاج موافقة اللجنة). false = الكل يحصل على الخطة
 };
+/* التوزيع العشوائي: قيمة ثابتة مشتقة من الكود العشوائي، فلا يتغير الفرع إذا غيّر الطالب جهازه */
+function armOf(code){let h=2166136261;for(const c of String(code)){h^=c.charCodeAt(0);h=Math.imul(h,16777619);}return (h>>>0)%2?'plan':'goal';}
+const getArm=()=>CONFIG.RANDOMIZE?armOf(P.code):'plan';
 
 /* =================== أدوات =================== */
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-const fmtDate=s=>new Date(s).toLocaleDateString('ar-EG-u-nu-latn',{day:'numeric',month:'long'});
+const fmtDate=s=>new Date(s).toLocaleDateString(LANG==='en'?'en-GB':'ar-EG-u-nu-latn',{day:'numeric',month:'long'});
 let _mem=null;
 const store={
   get(){try{const v=localStorage.getItem('hp_v2');return v?JSON.parse(v):_mem}catch(e){return _mem}},
   set(v){_mem=v;try{localStorage.setItem('hp_v2',JSON.stringify(v))}catch(e){}},
   clear(){_mem=null;try{localStorage.removeItem('hp_v2')}catch(e){}}
 };
-function toast(t){const e=$('toast');e.textContent=t;e.classList.remove('hidden');clearTimeout(toast._t);toast._t=setTimeout(()=>e.classList.add('hidden'),2600);}
+function toast(t){const e=$('toast');e.textContent=X(t);e.classList.remove('hidden');clearTimeout(toast._t);toast._t=setTimeout(()=>e.classList.add('hidden'),2600);}
 
 /* =================== نظام Life's Essential 8 (AHA 2022) ===================
  الجداول مأخوذة من منهجية Healthy People 2030 للمقياس.
@@ -219,7 +253,34 @@ function compute(A,M,age,sex){
   if(egfr!==null){ if(egfr<60)refer.push(`معدل الترشيح الكلوي المقدّر ${Math.round(egfr)} (يُعاد التحليل)`); else if(egfr<90)watch.push(`معدل الترشيح الكلوي ${Math.round(egfr)} أقل قليلًا من 90`); }
   if(M.uacr!=null){ if(M.uacr>=30)refer.push(`ألبومين البول ${M.uacr} مجم/جم (يُؤكَّد بتكرار التحليل)`); }
   if(bmi!==null){ if(bmi>=30)watch.push(`مؤشر كتلة الجسم ${bmi.toFixed(1)} (سمنة)`); else if(bmi>=25)watch.push(`مؤشر كتلة الجسم ${bmi.toFixed(1)} (زيادة وزن)`); else if(bmi<18.5)watch.push(`مؤشر كتلة الجسم ${bmi.toFixed(1)} أقل من المعدل`); }
-  return {sc,total,n:v.length,bmi,egfr,refer,watch,mg:caffMg(A),na:sodiumMg(A)};
+  const ckm=ckmCalc(M,sex,bmi,egfr);
+  if(ckm.clin)refer.push('معدل الترشيح الكلوي أقل من 30: يلزم تقييم طبي عاجل');
+  return {sc,total,n:v.length,bmi,egfr,refer,watch,mg:caffMg(A),na:sodiumMg(A),ckm};
+}
+/* =================== مراحل القلب والكلى والأيض CKM (AHA 2023) ===================
+ تصنيف بحثي تعليمي للمراحل 0–2 من قياسات مفردة. المرحلتان 3 و4 تحتاجان تقييمًا سريريًا (تصوير/تاريخ مرضي)
+ ولا يمكن تحديدهما هنا؛ معادلات PREVENT غير صالحة تحت سن 30. نُعلِّم فقط eGFR<30 كحالة تستدعي تقييمًا عاجلًا. */
+function ckmCalc(M,sex,bmi,egfr){
+  const C=CONFIG.CKM,wc=C.WAIST[sex],D={};
+  if(bmi!==null||M.waist!=null){const p=(bmi!==null&&bmi>=C.BMI)||(M.waist!=null&&M.waist>=wc);D.adi={s:p?'f1':'ok',t:p?'دهون زائدة أو توزيع غير صحي':'ضمن المعدل'};}
+  if(M.fg!=null||M.a1c!=null){const dia=(M.fg!=null&&M.fg>=126)||(M.a1c!=null&&M.a1c>=6.5),pre=!dia&&((M.fg!=null&&M.fg>=100)||(M.a1c!=null&&M.a1c>=5.7));
+    D.glu={s:dia?'f2':pre?'f1':'ok',t:dia?'في نطاق السكري (يلزم تأكيد)':pre?'ما قبل السكر':'طبيعي'};}
+  if(M.sbp!=null){const hy=M.sbp>=130||M.dbp>=80;D.bp={s:hy?'f2':M.sbp>=120?'w':'ok',t:hy?'130/80 أو أعلى':M.sbp>=120?'مرتفع قليلًا':'طبيعي'};}
+  if(M.tg!=null){D.tg={s:M.tg>=135?'f2':'ok',t:M.tg>=135?'مرتفعة (135 أو أكثر)':'طبيعية'};}
+  let g=null,a=null;
+  if(egfr!==null||M.uacr!=null){
+    if(egfr!==null)g=egfr>=90?'G1':egfr>=60?'G2':egfr>=45?'G3a':egfr>=30?'G3b':egfr>=15?'G4':'G5';
+    if(M.uacr!=null)a=M.uacr<30?'A1':M.uacr<=300?'A2':'A3';
+    const ckd=(egfr!==null&&egfr<60)||(M.uacr!=null&&M.uacr>=30),w=!ckd&&egfr!==null&&egfr<90;
+    D.kid={s:ckd?'f2':w?'w':'ok',t:ckd?'مؤشر كلوي يستحق التأكيد':w?'ترشيح أقل قليلًا من 90':'طبيعي'};}
+  // المتلازمة الأيضية (NCEP ATP III): 3 من 5
+  const m=[];
+  if(M.waist!=null)m.push(M.waist>=wc); if(M.tg!=null)m.push(M.tg>=150); if(M.hdl!=null)m.push(M.hdl<(sex==='F'?50:40));
+  if(M.sbp!=null)m.push(M.sbp>=130||M.dbp>=85); if(M.fg!=null)m.push(M.fg>=100);
+  const metsN=m.filter(Boolean).length,mets=metsN>=3;
+  const vals=Object.values(D);
+  let stage=vals.some(d=>d.s==='f2')||mets?2:vals.some(d=>d.s==='f1')?1:0;
+  return {D,measured:vals.length,stage,mets,metsN,clin:egfr!==null&&egfr<30,g,a};
 }
 const lvOf=x=>x>=80?{t:'مرتفعة',c:'var(--ok)'}:x>=50?{t:'متوسطة',c:'var(--mid)'}:{t:'منخفضة',c:'var(--low)'};
 const colOf=x=>x>=80?'var(--ok)':x>=50?'var(--mid)':'var(--low)';
@@ -259,6 +320,7 @@ const MF=[
   ['h','الطول (سم)','170',120,220],['w','الوزن (كجم)','70',30,250],
   ['fg','سكر صائم (مجم/دل)','90',40,600],['a1c','السكر التراكمي HbA1c (%)','5.2',3,15],
   ['tc','الكوليسترول الكلي (مجم/دل)','170',60,500],['hdl','الكوليسترول HDL (مجم/دل)','50',10,150],
+  ['waist','محيط الخصر (سم)','85',50,200],['tg','الدهون الثلاثية TG (مجم/دل)','110',20,1500],
   ['cre','كرياتينين الدم (مجم/دل)','0.9',0.2,10],['uacr','ألبومين البول UACR (مجم/جم)','10',0,3000]
 ];
 const AVATARS=['🦊','🐼','🦁','🐯','🦉','🐬','🦋','🌵','🌻','🚀','⚡','🎧'];
@@ -270,14 +332,32 @@ let W=null;                   // حالة المعالج {mode,step,A,M,age,...}
 const lastEntry=()=>P&&P.entries&&P.entries.length?P.entries[P.entries.length-1]:null;
 
 /* =================== التنقل العام =================== */
-function boot(){
+function renderNav(){
+  $('nav').firstElementChild.innerHTML=[['dash','📊','لوحتي'],['goal','🎯','هدفي'],['me','👤','بروفايلي']].map(([t,i,l])=>`<button data-t="${t}"><span>${i}</span>${l}</button>`).join('');
   document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;renderApp();window.scrollTo({top:0});});
-  if(P&&P.entries&&P.entries.length)goApp('dash'); else startWelcome();
+}
+function setLang(l){
+  const y=window.scrollY;
+  if(view==='welcome'&&$('nick')){wel.nick=$('nick').value;wel.recIn=$('recIn')?$('recIn').value:'';wel.consent=$('consent').checked;}
+  if(view==='wizard'&&W){const a=$('age');if(a&&a.value!=='')W.age=+a.value;for(const [k] of MF){const e=$('m_'+k);if(e)W.M[k]=e.value===''?undefined:+e.value;}}
+  try{localStorage.setItem('hp_lang',l)}catch(e){}
+  if(l===LANG)return;
+  try{sessionStorage.setItem('hp_state',JSON.stringify({view,wel,W,tab,y}))}catch(e){}
+  location.reload();
+}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#langb');if(b)setLang(LANG==='en'?'ar':'en');});
+function boot(){
+  document.title=X(document.title);renderNav();
+  let st=null;try{st=JSON.parse(sessionStorage.getItem('hp_state')||'null');sessionStorage.removeItem('hp_state')}catch(e){}
+  if(st&&st.view==='wizard'&&st.W&&P){W=st.W;view='wizard';setNav(false);renderWizard();window.scrollTo({top:st.y||0});return;}
+  if(st&&st.view==='welcome'){Object.assign(wel,st.wel||{});startWelcome();if(wel.recover)$('recBox').classList.remove('hidden');if(wel.recIn)$('recIn').value=wel.recIn;if($('consent'))$('consent').checked=!!wel.consent;return;}
+  if(P&&P.entries&&P.entries.length)goApp(st&&st.tab?st.tab:'dash'); else startWelcome();
+  if(st&&st.y)window.scrollTo({top:st.y});
 }
 function setNav(on){ $('nav').classList.toggle('hidden',!on); }
 function goApp(t){ view='app'; tab=t||tab; setNav(true); renderApp(); window.scrollTo({top:0}); }
 function topbar(){
-  return `<div class="topbar"><div><b>🛡️ جواز الصحة الوقائية</b><small>${esc(CONFIG.FACULTY)}</small></div></div>`;
+  return `<div class="topbar"><div><b>🛡️ جواز الصحة الوقائية</b><small>${esc(CONFIG.FACULTY)}</small></div><button type="button" class="langb" id="langb">${LANG==='en'?'عربي':'EN'}</button></div>`;
 }
 
 /* =================== الترحيب ===================*/
@@ -288,9 +368,10 @@ function startWelcome(){
   <div class="hero"><div class="hi"><div class="avatar">🛡️</div>أهلًا بك</div>
     <p class="meta" style="position:relative;z-index:1;margin:10px 0 0">استبيان قصير (5 دقائق) ثم تحصل على <b>لوحتك الصحية الشخصية</b>: درجة صحة القلب والأوعية، ونقاط قوتك وما يحتاج تحسينًا، وهدف أسبوعي تتابعه، ومتابعة تقدمك بعد حملة التوعية.</p></div>
   <div class="card"><h2>اختر هويتك على اللوحة</h2><p class="sub">الاسم المستعار والأيقونة تبقى على جهازك فقط ولا تُرسل لأحد.</p>
-    <input type="text" id="nick" maxlength="14" placeholder="اسم مستعار (مثال: نجم)" value="${esc(wel.nick)}" style="text-transform:none;letter-spacing:0;direction:rtl;text-align:start">
+    <input type="text" id="nick" maxlength="14" placeholder="اسم مستعار (مثال: نجم)" value="${nk(wel.nick)}" style="text-transform:none;letter-spacing:0;direction:auto;text-align:start">
     <div class="avs" style="margin-top:12px" id="avs">${AVATARS.map(a=>`<button type="button" data-a="${a}" class="${a===wel.avatar?'on':''}">${a}</button>`).join('')}</div>
     <div class="note" style="margin-top:14px">المشاركة اختيارية وبدون اسم حقيقي، ويمكنك التوقف في أي وقت. تُستخدم البيانات المجمّعة فقط للبحث العلمي والتوعية.${CONFIG.ETHICS_NO?`<br>رقم موافقة لجنة الأخلاقيات: ${esc(CONFIG.ETHICS_NO)}`:''}</div>
+    ${CONFIG.RANDOMIZE?'<div class="note" style="margin-top:10px">يقارن هذا البحث بين أسلوبين لدعم الأهداف الأسبوعية، لذلك قد تختلف أدوات الهدف قليلًا بين الزملاء.</div>':''}
     <label class="chk"><input type="checkbox" id="consent"><span>أوافق على المشاركة في هذا البحث، وأفهم أن بياناتي مجهولة الهوية.</span></label>
     ${CONFIG.API_URL?'':'<div class="note" style="margin-top:12px">وضع تجريبي: لن تُحفظ البيانات على الخادم.</div>'}
     <div class="btns"><button class="btn pri" id="go">ابدأ</button></div>
@@ -301,7 +382,7 @@ function startWelcome(){
   $('rec').onclick=()=>{wel.recover=!wel.recover;$('recBox').classList.toggle('hidden',!wel.recover);};
   $('go').onclick=()=>{
     if(!$('consent').checked){alert('يرجى الموافقة على المشاركة للمتابعة.');return;}
-    const nick=$('nick').value.trim()||'صديقي';
+    const nick=$('nick').value.trim()||(LANG==='en'?'Friend':'صديقي');
     let code=null;
     if(wel.recover){ code=$('recIn').value.trim().toUpperCase(); if(!/^[A-Z0-9-]{4,12}$/.test(code)){alert('الكود غير صحيح.');return;} }
     P={nick,avatar:wel.avatar,code:code||newCode(),recovered:!!code,entries:[],goal:null,goalHistory:[]};
@@ -417,7 +498,7 @@ function dashHTML(le,res){
   const due=P.entries.length===1&&daysSince>=CONFIG.FOLLOWUP_DAYS;
   const dueDate=new Date(P.entries[0].ts+CONFIG.FOLLOWUP_DAYS*864e5);
   return `<div class="wrap">
-  <div class="hero"><div class="hi"><div class="avatar">${esc(P.avatar)}</div>أهلًا يا ${esc(P.nick)}</div>
+  <div class="hero"><div class="hi"><div class="avatar">${esc(P.avatar)}</div>أهلًا يا ${nk(P.nick)}</div>
    <div class="row"><div class="ring"><svg width="132" height="132"><circle cx="66" cy="66" r="56" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="12"/>
      <circle cx="66" cy="66" r="56" fill="none" stroke="${L.c==='var(--ok)'?'#5BD3A0':L.c==='var(--mid)'?'#F2C14E':'#FF8A6B'}" stroke-width="12" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-res.total/100)}"/></svg>
      <b>${res.total}<small>من 100</small></b></div>
@@ -437,6 +518,8 @@ function dashHTML(le,res){
        <div class="v" style="color:${colOf(v)}">${v}</div><div class="bar"><i style="width:${v}%;background:${colOf(v)}"></i></div>
        <div class="st">${v>=80?'ممتاز':v>=50?'يحتاج تحسينًا':'يحتاج اهتمامًا'}${m.note?` · ${m.note}`:''}</div><div class="tip">${TIPS[m.k]}</div></button>`;}).join('')}</div>
    <div class="tiny" style="margin-top:8px">اضغط أي مؤشر لقراءة النصيحة. الدرجات حسب نظام Life's Essential 8 من الجمعية الأمريكية للقلب، ودرجة الغذاء مبسّطة.</div></div>
+
+  ${ckmCard(res)}
 
   ${focus?`<div class="card"><h3>🔎 ركّز على هذا أولًا</h3><div class="focus"><div class="ic">${focus.i}</div><div style="flex:1"><b>${focus.n}</b> (${res.sc[focus.k]}/100)<div class="sub" style="margin:2px 0 0">${TIPS[focus.k]}</div></div></div>
    ${GT[focus.k]?`<div class="btns"><button class="btn pri" data-act="mkgoal" data-m="${focus.k}">اجعله هدفي هذا الأسبوع</button></div>`:''}</div>`:''}
@@ -461,6 +544,21 @@ function dashHTML(le,res){
   <div class="btns noprint"><button class="btn sec" data-act="followup">تحديث بياناتي</button><button class="btn line" data-act="print">طباعة / PDF</button></div>
   <div class="foot">الأداة للتوعية والبحث العلمي ولا تُغني عن الفحص الطبي أو التشخيص.</div></div>`;
 }
+const CK_LBL={adi:['الدهون الجسمية','⚖️'],glu:['السكر','🍬'],bp:['الضغط','❤️'],tg:['الدهون الثلاثية','🧪'],kid:['الكلى','🩺']};
+const CK_COL={ok:'var(--ok)',w:'var(--mid)',f1:'var(--mid)',f2:'var(--low)'};
+function ckmCard(res){
+  const c=res.ckm;
+  if(!c.measured)return `<div class="card"><h3>🫀🩺 القلب والكلى والأيض</h3><div class="sub">أضف قياساتك (الضغط، السكر، الدهون، الكلى) لتظهر لك صورتك المتكاملة.</div><div class="btns"><button class="btn sec sm" data-act="measures">إضافة القياسات</button></div></div>`;
+  const S=[['المرحلة 0','var(--ok)','لا توجد مؤشرات خطر ظاهرة في القياسات المتاحة.'],['المرحلة 1','var(--mid)','مؤشرات مبكرة (دهون زائدة أو ما قبل السكر): وقت ممتاز للوقاية.'],['المرحلة 2','var(--low)','مؤشرات أيضية أو كلوية تستحق التقييم الطبي وتأكيد القياس.']][c.stage];
+  const lab=c.clin?'عاجل':String(c.stage),col=c.clin?'var(--low)':S[1];
+  return `<div class="card"><h3>🫀🩺 القلب والكلى والأيض</h3>
+   <div class="stg"><div class="n" style="background:${col}">${lab}</div><div><b>${c.clin?'يلزم تقييم طبي عاجل':S[0]}</b>${c.measured<5&&!c.clin?' <span class="tiny">(مبدئي)</span>':''}
+   <div class="sub" style="margin:2px 0 0">${c.clin?'معدل الترشيح الكلوي المقدّر أقل من 30.':S[2]}</div></div></div>
+   <div class="tiles">${Object.keys(CK_LBL).map(k=>{const d=c.D[k];return d?`<div class="tile" style="border-color:${CK_COL[d.s]}"><b>${CK_LBL[k][1]} ${CK_LBL[k][0]}</b><span style="color:${CK_COL[d.s]}">${d.t}</span></div>`:`<div class="tile na"><b>${CK_LBL[k][1]} ${CK_LBL[k][0]}</b><span>غير مقاس</span></div>`;}).join('')}</div>
+   ${c.mets?`<div class="note" style="margin-top:10px">القياسات تتوافق مع المتلازمة الأيضية (${c.metsN} من 5 معايير). يُنصح بالتقييم الطبي.</div>`:''}
+   ${(c.g||c.a)?`<div class="tiny" style="margin-top:8px">تصنيف الكلى: <bdi dir="ltr">${[c.g,c.a].filter(Boolean).join(' · ')}</bdi> (KDIGO)</div>`:''}
+   <div class="tiny" style="margin-top:8px">اكتمال البيانات: ${c.measured} من 5 مجالات. تصنيف بحثي تعليمي مبني على بيان الجمعية الأمريكية للقلب 2023 وقياسات مفردة، وليس تشخيصًا. المرحلتان 3 و4 تحتاجان تقييمًا سريريًا لا يمكن إجراؤه هنا.</div></div>`;
+}
 const sl=(f,l,a,b,st,v,u)=>`<div class="srow"><div class="t"><span>${l}</span><b id="v_${f}">${v}${u}</b></div><input type="range" data-f="${f}" data-u="${u}" min="${a}" max="${b}" step="${st}" value="${v}"></div>`;
 function xbar(l,r,txt){const c=r>1?'var(--low)':r>.6?'var(--mid)':'var(--ok)';return `<div style="margin:10px 0"><div style="display:flex;justify-content:space-between;font-size:14px"><span>${l}</span><span>${txt}</span></div><div class="bar" style="height:10px"><i style="width:${clamp(r*100,0,100)}%;background:${c}"></i></div></div>`;}
 
@@ -474,11 +572,11 @@ function bindDash(le,res){
   });
   const upd=()=>{
     const A={...le.A};
-    document.querySelectorAll('.sim input[type=range]').forEach(r=>{A[r.dataset.f]=+r.value;$('v_'+r.dataset.f).textContent=r.value+r.dataset.u;});
+    document.querySelectorAll('.sim input[type=range]').forEach(r=>{A[r.dataset.f]=+r.value;$('v_'+r.dataset.f).textContent=X(r.value+r.dataset.u);});
     if($('sQuit')&&$('sQuit').checked){A.smoke='never';A.second=0;}
     const n=compute(A,le.M,le.age,le.sex).total,d=n-res.total;
     $('sNew').textContent=n; $('sNew').style.color=d>0?'var(--ok)':d<0?'var(--low)':'';
-    $('sDiff').textContent=d>0?`تتحسن درجتك بمقدار ${d} نقطة`:d<0?`تنخفض درجتك ${-d} نقطة`:'';
+    $('sDiff').textContent=X(d>0?`تتحسن درجتك بمقدار ${d} نقطة`:d<0?`تنخفض درجتك ${-d} نقطة`:'');
   };
   document.querySelectorAll('.sim input').forEach(i=>i.addEventListener('input',upd));
   loadPeer(le,res);
@@ -493,13 +591,32 @@ const GT={
   water:{t:'أشرب 8 أكواب مياه',n:5,i:'💧'},
   energy:{t:'يوم بلا مشروبات طاقة',n:6,i:'⚡'}
 };
+/* خطط "إذا–فإن": موقف محدد (إشارة) + سلوك واحد بسيط */
+const PLAN={
+  sleep:{act:'أطفئ الشاشات وأذهب للنوم',cues:['تدق الساعة 11 مساءً','أخلص المذاكرة','أضع الموبايل على الشاحن']},
+  act:{act:'أمشي 30 دقيقة',cues:['أخلص آخر محاضرة','أنتهي من العشاء','أصحو من النوم']},
+  diet:{act:'أختار وجبة مشوية أو سلطة بدل الوجبة السريعة',cues:['أشعر بالجوع وأنا في الكلية','أطلب أكلًا من تطبيق التوصيل','أمر بجوار محل الوجبات السريعة']},
+  nic:{act:'أشرب مياه وأمشي 5 دقائق بدل التدخين أو الفيب',cues:['أشعر برغبة في التدخين','أنتهي من الأكل','أكون متوترًا']},
+  water:{act:'أشرب كوب مياه',cues:['أصحو من النوم','أدخل أي محاضرة','أبدأ أي وجبة']},
+  energy:{act:'أشرب مياه أو شايًا خفيفًا بدل مشروب الطاقة',cues:['أشعر بالنعاس وأنا أذاكر','يقترب موعد الامتحان','أمر بالكشك']}
+};
+const cueText=g=>g&&g.cue?PLAN[g.metric].cues[+g.cue.split(':')[1]]:'';
 function setGoal(k){
   if(P.goal)archiveGoal();
-  P.goal={metric:k,text:GT[k].t,target:GT[k].n,start:iso(new Date()),done:{}}; store.set(P);
+  P.goal={metric:k,text:GT[k].t,target:GT[k].n,start:iso(new Date()),done:{},cue:null}; store.set(P);
 }
 function archiveGoal(){
   const g=P.goal; if(!g)return;
-  P.goalHistory=P.goalHistory||[]; P.goalHistory.push({metric:g.metric,start:g.start,target:g.target,count:Object.keys(g.done).length}); P.goal=null;
+  P.goalHistory=P.goalHistory||[]; P.goalHistory.push({metric:g.metric,start:g.start,target:g.target,count:Object.keys(g.done).length,cue:g.cue||null}); P.goal=null;
+}
+const goalDays=()=>(P.goalHistory||[]).reduce((a,x)=>a+x.count,0)+(P.goal?Object.keys(P.goal.done).length:0);
+function plannerHTML(g){
+  const pl=PLAN[g.metric];
+  return `<div class="wrap"><div class="card"><h2>🧩 حوّل هدفك إلى خطة</h2>
+   <p class="sub">هدفك: <b>${g.text}</b></p>
+   <p class="sub">اختر <b>الموقف</b> الذي ستنفّذ فيه. ربط السلوك بموقف محدد (إذا… فإن…) يجعله أسهل في التنفيذ من النية العامة، والخطة البسيطة أفضل من المعقدة.</p>
+   ${pl.cues.map((c,i)=>`<button class="sug" data-cue="${i}"><span class="ic">⏰</span><span><b>إذا ${c}،</b><br><span class="tiny">فإنني ${pl.act}</span></span></button>`).join('')}
+   <div class="btns"><button class="btn line sm" id="chg">اختيار هدف آخر</button></div></div></div>`;
 }
 function suggestions(res){
   const le=lastEntry(),A=le.A,out=[];
@@ -515,12 +632,14 @@ function goalHTML(le,res){
       ${suggestions(res).map(k=>`<button class="sug" data-g="${k}"><span class="ic">${GT[k].i}</span><span><b>${GT[k].t}</b><br><span class="tiny">${GT[k].n} أيام من 7</span></span></button>`).join('')}</div>
       ${histHTML()}</div>`;
   }
+  if(getArm()==='plan'&&!g.cue)return plannerHTML(g);
   const start=new Date(g.start+'T00:00:00'),todayS=iso(new Date()),cnt=Object.keys(g.done).length;
   const days=Array.from({length:7},(_,i)=>{const d=new Date(start);d.setDate(start.getDate()+i);return d;});
   const over=iso(days[6])<todayS, hit=cnt>=g.target;
-  const dn=['ح','ن','ث','ر','خ','ج','س'];
+  const dn=LANG==='en'?['Su','Mo','Tu','We','Th','Fr','Sa']:['ح','ن','ث','ر','خ','ج','س'];
   return `<div class="wrap"><div class="card"><h2>${GT[g.metric].i} هدف الأسبوع</h2><p style="font-size:18px;font-weight:700;margin:0">${g.text}</p>
     <p class="sub">المطلوب ${g.target} أيام من 7 · بدأ ${fmtDate(g.start)}</p>
+    ${g.cue?`<div class="note" style="margin-bottom:6px">🧩 <b>خطتي:</b> إذا ${cueText(g)}، فإنني ${PLAN[g.metric].act}.</div>`:''}
     <div class="days">${days.map(d=>{const s=iso(d),fut=s>todayS;return `<button class="day${g.done[s]?' done':''}${s===todayS?' today':''}${fut?' future':''}" data-d="${s}" ${fut?'disabled':''}><span>${dn[d.getDay()]}</span><b>${g.done[s]?'✓':d.getDate()}</b></button>`;}).join('')}</div>
     <div class="pbar"><i style="width:${Math.min(100,cnt/g.target*100)}%"></i></div>
     <p class="tiny" style="margin:6px 0 0">${cnt} من ${g.target}</p>
@@ -533,7 +652,8 @@ function histHTML(){
   return `<div class="card"><h3>📜 أهدافي السابقة</h3>${h.map(x=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line)"><span>${GT[x.metric]?GT[x.metric].i+' '+GT[x.metric].t:x.metric}</span><b style="color:${x.count>=x.target?'var(--ok)':'var(--mut)'}">${x.count}/${x.target}</b></div>`).join('')}</div>`;
 }
 function bindGoal(le,res){
-  document.querySelectorAll('.sug').forEach(b=>b.onclick=()=>{setGoal(b.dataset.g);renderApp();});
+  document.querySelectorAll('.sug[data-g]').forEach(b=>b.onclick=()=>{setGoal(b.dataset.g);renderApp();});
+  document.querySelectorAll('.sug[data-cue]').forEach(b=>b.onclick=()=>{P.goal.cue=P.goal.metric+':'+b.dataset.cue;store.set(P);renderApp();toast('تم حفظ خطتك 🧩');});
   document.querySelectorAll('.day').forEach(b=>b.onclick=()=>{
     const s=b.dataset.d; if(P.goal.done[s])delete P.goal.done[s]; else P.goal.done[s]=1; store.set(P); renderApp();
   });
@@ -573,12 +693,14 @@ function meHTML(le,res){
   if(cur.tc!=null)pills.push(`non-HDL <b>${cur.tc-cur.hdl}</b>`);
   if(res.egfr!==null)pills.push(`eGFR <b>${Math.round(res.egfr)}</b>`);
   if(cur.uacr!=null)pills.push(`UACR <b>${cur.uacr}</b>`);
+  if(cur.waist!=null)pills.push(`الخصر <b>${cur.waist}</b>`);
+  if(cur.tg!=null)pills.push(`TG <b>${cur.tg}</b>`);
   return `<div class="wrap">
   <div class="card" style="text-align:center"><div class="avatar" style="width:72px;height:72px;font-size:40px;margin:0 auto 6px;background:var(--gold-l)">${esc(P.avatar)}</div>
-   <h2>${esc(P.nick)}</h2><div class="sub" style="margin:0">${CONFIG.YEARS[le.year-1]} · ${le.sex==='F'?'أنثى':'ذكر'} · ${le.age} سنة</div>
+   <h2>${nk(P.nick)}</h2><div class="sub" style="margin:0">${CONFIG.YEARS[le.year-1]} · ${le.sex==='F'?'أنثى':'ذكر'} · ${le.age} سنة</div>
    <div class="code">${esc(P.code)}</div><div class="tiny">احتفظ بهذا الكود: يربط متابعتك على أي جهاز بدون اسمك.</div>
    <div class="btns" style="justify-content:center"><button class="btn sec sm" id="cp">نسخ الكود</button><button class="btn sec sm" id="ed">تعديل الاسم والأيقونة</button></div>
-   <div id="edBox" class="hidden" style="margin-top:12px;text-align:start"><input type="text" id="nn" maxlength="14" value="${esc(P.nick)}" style="text-transform:none;letter-spacing:0;direction:rtl;text-align:start">
+   <div id="edBox" class="hidden" style="margin-top:12px;text-align:start"><input type="text" id="nn" maxlength="14" value="${nk(P.nick)}" style="text-transform:none;letter-spacing:0;direction:rtl;text-align:start">
     <div class="avs" style="margin-top:10px" id="avs2">${AVATARS.map(a=>`<button type="button" data-a="${a}" class="${a===P.avatar?'on':''}">${a}</button>`).join('')}</div>
     <div class="btns"><button class="btn pri sm" id="sv">حفظ</button></div></div></div>
 
@@ -615,10 +737,12 @@ function payload(e,res){
     caffeine_mg:res.mg,sodium_mg:res.na,smoke:A.smoke,quit:A.quit||'',second:A.second,sleep:A.sleep,regular:A.regular,act_min:A.act,sitting:A.sitting,
     sbp:M.sbp??'',dbp:M.dbp??'',height:M.h??'',weight:M.w??'',bmi:res.bmi===null?'':+res.bmi.toFixed(1),
     fg:M.fg??'',a1c:M.a1c??'',tc:M.tc??'',hdl:M.hdl??'',creatinine:M.cre??'',egfr:res.egfr===null?'':Math.round(res.egfr),uacr:M.uacr??'',
+    waist:M.waist??'',tg:M.tg??'',ckm_stage:res.ckm.measured?(res.ckm.clin?3:res.ckm.stage):'',ckm_domains:res.ckm.measured,kdigo_g:res.ckm.g||'',kdigo_a:res.ckm.a||'',mets_n:res.ckm.metsN,
     le8:res.total,n_metrics:res.n,s_diet:s.diet,s_act:s.act,s_nic:s.nic,s_sleep:s.sleep,s_bmi:s.bmi??'',s_lipid:s.lipid??'',s_gluc:s.gluc??'',s_bp:s.bp??'',
     f_smoke:['cig','vape','both'].includes(A.smoke)?1:0,f_sleep:A.sleep<6?1:0,f_inactive:A.act<150?1:0,f_water:A.water<6?1:0,f_caff:res.mg>CONFIG.CAFF_LIMIT?1:0,
     f_refer:(res.n>4||e.M.sbp!=null||e.M.fg!=null||e.M.a1c!=null||e.M.cre!=null||e.M.uacr!=null)?(res.refer.length?1:0):'',
-    goal_metric:P.goal?P.goal.metric:'',goals_done:(P.goalHistory||[]).filter(x=>x.count>=x.target).length,
+    goal_metric:P.goal?P.goal.metric:'',goals_done:(P.goalHistory||[]).filter(x=>x.count>=x.target).length+(P.goal&&Object.keys(P.goal.done).length>=P.goal.target?1:0),
+    goal_days:goalDays(),arm:getArm(),plan_cue:(P.goal&&P.goal.cue)||((P.goalHistory||[]).slice(-1)[0]||{}).cue||'',
     note:res.refer.join(' | ')};
 }
 async function send(e,res){
@@ -632,7 +756,7 @@ async function loadPeer(le,res){
   if(!CONFIG.API_URL)return;
   try{
     const r=await fetch(CONFIG.API_URL+'?action=stats&year='+le.year),j=await r.json();
-    if(j.ok&&j.avg!==null&&$('peer'))$('peer').innerHTML=`<div class="card"><h3>👥 مقارنة مجهولة مع فرقتك</h3><div class="sub" style="margin:0">متوسط ${CONFIG.YEARS[le.year-1]}: <b>${j.avg}</b> (من ${j.n} مشاركًا بدون أسماء) · درجتك: <b>${res.total}</b></div></div>`;
+    if(j.ok&&j.avg!==null&&$('peer'))$('peer').innerHTML=`<div class="card"><h3>👥 مقارنة مجهولة مع فرقتك</h3><div class="sub" style="margin:0">متوسط ${CONFIG.YEARS[le.year-1]}: <b>${j.avg}</b> (${j.n} مشاركًا بدون أسماء) · درجتك: <b>${res.total}</b></div></div>`;
   }catch(e){}
 }
 
